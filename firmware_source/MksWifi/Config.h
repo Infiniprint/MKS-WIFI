@@ -25,6 +25,8 @@
 const int EspReqTransferPin = 0;  // GPIO0, output, indicates to the SAM that we want to send something
 const int McuTfrReadyPin = 4;     // GPIO4, input, indicates that MCU is ready to execute an SPI transaction
 
+const char *serverURL = "www.example.com";
+const uint16_t serverPort = 8080;
 #endif
 
 

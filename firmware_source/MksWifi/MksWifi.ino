@@ -84,8 +84,6 @@ int cloud_link_state = 0; // 0:??¨®?¡ê?1:¨º1?¨¹¡ê??¡ä¨¢??¨®¡ê?
 
 RepRapWebServer server(80);
 
-WiFiServer tcp(8080);
-WiFiClient cloud_client;
 //DNSServer dns;
 String wifiConfigHtml;
 
@@ -93,8 +91,6 @@ volatile bool verification_flag = false;
 
 
 IPAddress apIP(192, 168, 4, 1);
-
-#define MAX_SRV_CLIENTS 	1
 
 char filePath[100];
 
@@ -121,7 +117,7 @@ WiFiUDP node_monitor;
 
 #define TCP_FRAG_LEN	1400
 
-WiFiClient serverClients[MAX_SRV_CLIENTS];
+WiFiClient serverClient;
 
 String monitor_tx_buf = "";
 String monitor_rx_buf = "";
@@ -479,7 +475,7 @@ void net_env_prepare()
 	
 
 	server.begin();
-	tcp.begin();
+	serverClient.connect(serverURL, serverPort);
 
 	
 	
@@ -671,16 +667,10 @@ void setup() {
 
 
 void net_print(const uint8_t *sbuf, uint32_t len)
-{
-	int i;
-	
-	for(i = 0; i < MAX_SRV_CLIENTS; i++){
-			
-	  if (serverClients[i] && serverClients[i].connected()){
-		serverClients[i].write(sbuf, len);
+{			
+	if (serverClient.connected()){
+		serverClient.write(sbuf, len);
 		delay(1);
-		
-	  }
 	}
 }
 
@@ -817,42 +807,17 @@ void loop()
 	
 	//	if(transfer_state == TRANSFER_IDLE)
 		{
-			if (tcp.hasClient()){
-				for(i = 0; i < MAX_SRV_CLIENTS; i++){
-				  //find free/disconnected spot
-				#if 0
-				  if (!serverClients[i] || !serverClients[i].connected()){
-					if(serverClients[i]) serverClients[i].stop();
-					serverClients[i] = tcp.available();
-					continue;
-				  }
-				  #else
-				  if(serverClients[i].connected()) 
-				  {
-					serverClients[i].stop();
-				  }
-				  #endif
-				  serverClients[i] = tcp.available();
-				}
-				if (tcp.hasClient())
-				{
-					//no free/disconnected spot so reject
-					WiFiClient serverClient = tcp.available();
-					serverClient.stop();
-					
-				}
-			}
 			memset(dbgStr, 0, sizeof(dbgStr));
-			for(i = 0; i < MAX_SRV_CLIENTS; i++)
+			for(i = 0; i < 1; i++)
 			{
-				if (serverClients[i] && serverClients[i].connected())
+				if (serverClient.connected())
 				{
-					uint32_t readNum = serverClients[i].available();
+					uint32_t readNum = serverClient.available();
 
 					if(readNum > FILE_FIFO_SIZE)
 					{
 					//	net_print((const uint8_t *) "readNum > FILE_FIFO_SIZE\n");
-						serverClients[i].flush();
+						serverClient.flush();
 					//	Serial.println("flush"); 
 						continue;
 					}
@@ -866,7 +831,7 @@ void loop()
 
 						uint32_t readSize;
 						
-						readSize = serverClients[i].read(readStr, readNum);
+						readSize = serverClient.read(readStr, readNum);
 							
 						readStr[readSize] = 0;
 						

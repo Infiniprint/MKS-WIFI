@@ -1,3 +1,4 @@
 firmware_source/MksWifi/*.dot
 firmware_source/MksWifi/*.svg
 firmware_source/MksWifi/*.png
+firmware_source/MksWifi/.vscode/c_cpp_properties.json
