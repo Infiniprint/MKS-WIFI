@@ -1024,8 +1024,15 @@ void loop()
 												}
                         else if(gcode.startsWith("M28"))
                         {
-                          Serial.println("Recieved M28!!");
                           net_print((const uint8_t *) "ok - received M28!\r\n", strlen((const char *)"ok - received M28!\r\n"));
+                          transfer_state = TRANSFER_BEGIN;
+                          net_print((const uint8_t *) "Set transfer begin!\r\n", strlen((const char *)"Set transfer begin!\r\n"));
+                        }
+                        else if(gcode.startsWith("M29"))
+                        {
+                          net_print((const uint8_t *) "ok - received M29!\r\n", strlen((const char *)"ok - received M29!\r\n"));
+                          transfer_state = TRANSFER_IDLE;
+                          net_print((const uint8_t *) "Set transfer idle!\r\n", strlen((const char *)"Set transfer idle!\r\n"));
                         }
 												else if(gcode.startsWith("M992"))
 												{
