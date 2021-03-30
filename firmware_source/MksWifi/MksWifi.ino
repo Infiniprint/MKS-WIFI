@@ -818,7 +818,7 @@ void loop()
 					{
 					//	net_print((const uint8_t *) "readNum > FILE_FIFO_SIZE\n");
 						serverClient.flush();
-					//	Serial.println("flush"); 
+						Serial.println("flush"); 
 						continue;
 					}
 
@@ -834,8 +834,9 @@ void loop()
 						readSize = serverClient.read(readStr, readNum);
 							
 						readStr[readSize] = 0;
+            Serial.print("Received: ");
 						
-
+            Serial.println((const char *)readStr);
 						
 						//transfer file
 						#if 0
@@ -1021,6 +1022,11 @@ void loop()
 												//	net_print((const uint8_t *) dbgStr, strlen((const char *)dbgStr));
 												//	net_print((const uint8_t *) "ok\r\n", strlen((const char *)"ok\r\n"));
 												}
+                        else if(gcode.startsWith("M28"))
+                        {
+                          Serial.println("Recieved M28!!");
+                          net_print((const uint8_t *) "ok - received M28!\r\n", strlen((const char *)"ok - received M28!\r\n"));
+                        }
 												else if(gcode.startsWith("M992"))
 												{
 													memset(dbgStr, 0, sizeof(dbgStr));
@@ -4227,4 +4233,3 @@ String fileUrlEncode(char *array)
     return encodedString;
     
 }
-
