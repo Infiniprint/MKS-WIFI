@@ -198,6 +198,8 @@ boolean printFinishFlag = false;
 
 boolean transfer_file_flag = false;
 
+boolean block_regular_commands = false;
+
 boolean rcv_end_flag = false;
 
 uint8_t dbgStr[100] ;
@@ -1084,14 +1086,16 @@ void loop()
                              else if(gcode.startsWith("M28"))
                              {
                                net_print((const uint8_t *) "ok - received M28!\r\n", strlen((const char *)"ok - received M28!\r\n"));
-                               transfer_state = TRANSFER_BEGIN;
-                               net_print((const uint8_t *) "Set transfer begin!\r\n", strlen((const char *)"Set transfer begin!\r\n"));
+                               // transfer_state = TRANSFER_READY;
+                               block_regular_commands = true;
+                               net_print((const uint8_t *) "Set block_regular_commands true!\r\n", strlen((const char *)"Set block_regular_commands true!\r\n"));
                              }
                              else if(gcode.startsWith("M29"))
                              {
                                net_print((const uint8_t *) "ok - received M29!\r\n", strlen((const char *)"ok - received M29!\r\n"));
-                               transfer_state = TRANSFER_IDLE;
-                               net_print((const uint8_t *) "Set transfer idle!\r\n", strlen((const char *)"Set transfer idle!\r\n"));
+                               // transfer_state = TRANSFER_IDLE;
+                               block_regular_commands = false;
+                               net_print((const uint8_t *) "Set block_regular_commands false!\r\n", strlen((const char *)"Set block_regular_commands false!\r\n"));
                              }
 													}
 													gcodeM3.concat(gcode);
@@ -1164,7 +1168,10 @@ void loop()
 
 		if(verification_flag)
 		{
-			query_printer_inf();	
+			if (!block_regular_commands)
+			{
+			  query_printer_inf();	
+			}
 			if(millis() - socket_busy_stamp > 5000)
 			{				
 				reply_search_handler();
