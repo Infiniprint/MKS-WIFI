@@ -198,6 +198,8 @@ boolean printFinishFlag = false;
 
 boolean transfer_file_flag = false;
 
+boolean block_regular_commands = false;
+
 boolean rcv_end_flag = false;
 
 uint8_t dbgStr[100] ;
@@ -823,7 +825,7 @@ void loop()
 					{
 					//	net_print((const uint8_t *) "readNum > FILE_FIFO_SIZE\n");
 						serverClient.flush();
-					//	Serial.println("flush"); 
+						Serial.println("flush"); 
 						continue;
 					}
 
@@ -839,9 +841,11 @@ void loop()
 						readSize = serverClient.read(readStr, readNum);
 							
 						readStr[readSize] = 0;
-						
-
-						
+//            if(transfer_state == TRANSFER_IDLE)
+//            {
+//              Serial.print("Received: ");
+//              Serial.println((const char *)readStr);
+//            }
 						//transfer file
 						#if 0
 						if(strstr((const char *)readStr, "M29") != 0)
@@ -1068,6 +1072,8 @@ void loop()
 												}*/
 												else
 												{	
+                          net_print((const uint8_t *) "else block, received gcode\r\n", strlen((const char *)"else block, received gcode\r\n"));
+                          net_print((const uint8_t *) &gcode[0], strlen((const char *) &gcode[0]));
 													if(gPrinterInf.print_state == PRINTER_IDLE)
 													{
 														if(gcode.startsWith("M23") || gcode.startsWith("M24"))
@@ -1082,6 +1088,20 @@ void loop()
 
 															printFinishFlag = false;
 														 }
+                             else if(gcode.startsWith("M28"))
+                             {
+                               net_print((const uint8_t *) "ok - received M28!\r\n", strlen((const char *)"ok - received M28!\r\n"));
+                               // transfer_state = TRANSFER_READY;
+                               block_regular_commands = true;
+                               net_print((const uint8_t *) "Set block_regular_commands true!\r\n", strlen((const char *)"Set block_regular_commands true!\r\n"));
+                             }
+                             else if(gcode.startsWith("M29"))
+                             {
+                               net_print((const uint8_t *) "ok - received M29!\r\n", strlen((const char *)"ok - received M29!\r\n"));
+                               // transfer_state = TRANSFER_IDLE;
+                               block_regular_commands = false;
+                               net_print((const uint8_t *) "Set block_regular_commands false!\r\n", strlen((const char *)"Set block_regular_commands false!\r\n"));
+                             }
 													}
 													gcodeM3.concat(gcode);
 													
@@ -1107,16 +1127,19 @@ void loop()
 									
 									
 								}
-								
+                net_print((const uint8_t *) "gcodeM3 is:", strlen((const char *)"gcodeM3 is:"));
+								net_print((const uint8_t *) &gcodeM3[0], strlen((const char *) &gcodeM3[0]));
 								if(gcodeM3.length() > 2)
 								{
 									package_gcode(gcodeM3, true);
+                  net_print((const uint8_t *) "packaed gcode", strlen((const char *)"packaed gcode"));
 									//Serial.write(uart_send_package, sizeof(uart_send_package));
 									/*transfer_state = TRANSFER_READY;
 									digitalWrite(EspReqTransferPin, LOW);*/
 									do_transfer();
-
+                  net_print((const uint8_t *) "did transfer", strlen((const char *)"did transfer"));
 									socket_busy_stamp = millis();
+                  net_print((const uint8_t *) "ran socket busy line", strlen((const char *)"ran socket busy line"));
 								}
 								
 								
@@ -1150,7 +1173,10 @@ void loop()
 
 		if(verification_flag)
 		{
-			query_printer_inf();	
+			if (!block_regular_commands)
+			{
+			  query_printer_inf();	
+			}
 			if(millis() - socket_busy_stamp > 5000)
 			{				
 				reply_search_handler();
