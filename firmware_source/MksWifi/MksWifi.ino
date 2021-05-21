@@ -475,7 +475,12 @@ void net_env_prepare()
 	
 
 	server.begin();
-	serverClient.connect(serverURL, serverPort);
+  while (serverClient.connect(serverURL, serverPort) <= 0) {
+//  while (serverClient.connect({18,144,22,121}, serverPort) <= 0) {
+    Serial.println("Failed to connect");
+    delay(1000);
+  }
+  Serial.println("Connected");
 
 	
 	
@@ -1268,10 +1273,10 @@ int package_net_para()
 	
 	}
 
-	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + 11] = host_len;
-	memcpy(&uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + 12], cloud_host, host_len);
-	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + host_len + 12] = cloud_port & 0xff;
-	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + host_len + 13] = (cloud_port >> 8 ) & 0xff;
+//	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + 11] = host_len;
+//	memcpy(&uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + 12], cloud_host, host_len);
+//	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + host_len + 12] = cloud_port & 0xff;
+//	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + host_len + 13] = (cloud_port >> 8 ) & 0xff;
 
 	int id_len = strlen((const char *)moduleId);
 	uart_send_package[UART_PROTCL_DATA_OFFSET + wifi_name_len + wifi_key_len + host_len + 14]  = id_len;
@@ -4227,4 +4232,3 @@ String fileUrlEncode(char *array)
     return encodedString;
     
 }
-
